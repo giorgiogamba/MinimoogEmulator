@@ -100,7 +100,7 @@ var noise_gen_label, filter_cutoff_label, filter_emphasis_label, filter_contour_
 
 
 /*Creating window*/
-w = Window("Prova", Rect(50, 50, 1380, 360)).front;
+w = Window("Minimoog Emulator", Rect(50, 50, 1380, 360)).front;
 w.background = Color.black;
 
 //Frees all synths when window is closed
