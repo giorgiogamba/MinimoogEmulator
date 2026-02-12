@@ -1,16 +1,22 @@
-/*Execution Instructions:
-1, Turn on the Server
-2. Evaluate "SynthDef Declaration"
-3. Evaluate "Program"
-4. In order to shut down the program, please close the window
+// Copyright Giorgio Gamba 2021
 
-NB: The program comes with already set values for Filter and Amplfier. In order to modify them, please rotate knobs.
-In order to generate sound, choose a waveform from one oscillator, turn on oscillator volume and then turn on general volume
-*/
+// How to run
+// 1. Start Server Ctrl + B
+// 2. Evaluate the program: inside parenthesis presso Ctrl + Enter
+// 3. Enjoy
 
+( // Evaluate down here
+
+//Variables Declarations
+
+//Keyboard GUI variables
+var heigth, width, keys_number, base, keyboard;
+
+//Gui Labels variables
+var noise_gen_label, filter_cutoff_label, filter_emphasis_label, filter_contour_label, filter_attack_label, filter_decay_label, filter_sustain_label, env_attack_label, env_decay_label, env_sustain_label, arp_menu_label, arp_rate_label, arp_start_label;
 
 //"SynthDef Declaration"
-(
+
 //Oscillator
 SynthDef(\osc, { arg outBus, freq = 440, saw_on = 0, pulse_on = 0, pulse2_on = 0, pulse3_on = 0, tri_on = 0, gain = 0;
 	//Oscillators with different waveforms declaration:
@@ -31,7 +37,7 @@ SynthDef(\noisegenerator, { arg gain = 0, outBus;
 
 //Mixer
 SynthDef(\a, {
-	 arg vol = 1, cutoff = 500, reso, amp_gate = 0, amp_env_atck = 0.02, amp_env_dcy = 1, amp_env_sus = 0, amp_env_curve = -4, inBus, fil_env_atck=0, fil_env_dcy=5, fil_env_sus=0, contour = 1000, fil_gate = 0;
+	 arg vol = 1, cutoff = 500, reso, amp_gate = 0, amp_env_atck = 0.02, amp_env_dcy = 1, amp_env_sus = 0.7, amp_env_curve = -4, inBus, fil_env_atck=0, fil_env_dcy=5, fil_env_sus=0, contour = 1000, fil_gate = 0;
 
 	//Amplifier Envelope Path Declaration
 	var amp_env_path = Env.adsr(attackTime:amp_env_atck, decayTime:amp_env_dcy, sustainLevel:amp_env_sus, releaseTime:0.05, curve:amp_env_curve);
@@ -44,30 +50,20 @@ SynthDef(\a, {
 	var env_cutoff = EnvGen.ar(fil_env_path, gate:fil_gate);
 
 	//Filter Declaration
-	var filter = MoogFF.ar(In.ar(inBus, 4), freq:cutoff+(contour*env_cutoff), gain:reso, mul:vol*amp_env);
+	var filter = MoogFF.ar(In.ar(inBus, 1), freq:(cutoff+(contour*env_cutoff)).clip(20, 20000), gain:reso, mul:vol*amp_env);
 
 	//Sending resulting signal to the speakers
-	Out.ar([0, 1], filter);
+	Out.ar([0, 1], filter!2); // !2 duplicates mono to stereo
 }).add;
-)
-
-//Program
-(
-//Variables Declarations
-//Keyboard GUI variables
-var heigth, width, keys_number, base, keyboard;
-
-//Gui Labels variables
-var noise_gen_label, filter_cutoff_label, filter_emphasis_label, filter_contour_label, filter_attack_label, filter_decay_label, filter_sustain_label, env_attack_label, env_decay_label, env_sustain_label, arp_menu_label, arp_rate_label, arp_start_label;
 
 /*Creating bus and synths and connecting synths togethere*/
 ~bus = Bus.audio(s, 4);
-~mixer = Synth(\a, [\inBus, ~bus.index]);
 ~x1 = Synth(\osc, [\outBus, ~bus.index]);
 ~x2 = Synth(\osc, [\outBus, ~bus.index]);
 ~x3 = Synth(\osc, [\outBus, ~bus.index]);
 ~noisegenerator = Synth(\noisegenerator, [\outBus, ~bus.index]);
-~mixer.set(\vol, 0);
+~mixer = Synth.tail(s, \a, [\inBus, ~bus.index]);
+~mixer.set(\vol, 0.5);
 
 //Arpeggiator
 /*Contains all arpaggiator patterns (selecatable from GUI)*/
@@ -88,13 +84,20 @@ var noise_gen_label, filter_cutoff_label, filter_emphasis_label, filter_contour_
 		~x1.set(\freq, freq); //set frequencies into 3 oscillators
 		~x2.set(\freq, freq);
 		~x3.set(\freq, freq);
-		~rate.wait; //Waits before re-execute
+
+		// Quickly close and reopen the gate to restart the ADSR envelope
+        ~mixer.set(\amp_gate, 0, \fil_gate, 0);
+        0.01.wait;
+        ~mixer.set(\amp_gate, 1, \fil_gate, 1);
+
+		(~rate - 0.01).max(0.01).wait; //Waits before re-execute
 	});
 });
 
+// GUI Implementation
 
 /*Creating window*/
-w = Window("Prova", Rect(50, 50, 1380, 360)).front;
+w = Window("Minimoog Emulator", Rect(50, 50, 1380, 360)).front;
 w.background = Color.black;
 
 //Frees all synths when window is closed
@@ -271,26 +274,59 @@ Repeated for oscillator #2 and #3*/
 
 //Filter Controls
 /*Creation of filter controls. For each filter parameter, creating a knob and inserting it into GUI*/
-~filter_cutoff = Knob(w, Rect(330, 80, 40, 40)).action_({ arg me; ~mixer.set(\cutoff, me.value*3500)})
-.color_([Color.white, Color.red, Color.white]);
-~filter_emphasis = Knob(w, Rect(400, 80, 40, 40)).action_({ arg me; ~mixer.set(\reso, me.value*4*0.83)})
-.color_([Color.white, Color.red, Color.white]);
-~filter_contour = Knob(w, Rect(470, 80, 40, 40)).action_({arg me; ~mixer.set(\contour, me.value * 3500);})
-.color_([Color.white, Color.red, Color.white]);
-~fil_env_atck = Knob(w, Rect(330, 180, 40, 40)).action_({arg me; ~mixer.set(\fil_env_atck, me.value)})
-.color_([Color.white, Color.red, Color.white]);
-~fil_env_dcy = Knob(w, Rect(400, 180, 40, 40)).action_({arg me; ~mixer.set(\fil_env_dcy, me.value * 10)})
-.color_([Color.white, Color.red, Color.white]);
-~fil_env_sus = Knob(w, Rect(470, 180, 40, 40)).action_({arg me; ~mixer.set(\fil_env_sus, me.value)})
-.color_([Color.white, Color.red, Color.white]);
+~filter_cutoff = Knob(w, Rect(330, 80, 40, 40))
+.value_(500.explin(40, 18000, 0, 1)) // Set initial value to match default cutoff=500
+.color_([Color.white, Color.red, Color.white])
+.action_({
+	arg me;
+	var cal_cutoff = me.value.linexp(0, 1, 40, 18000);
+	~mixer.set(\cutoff, cal_cutoff)});
+
+~filter_emphasis = Knob(w, Rect(400, 80, 40, 40))
+.color_([Color.white, Color.red, Color.white])
+.action_({
+	arg me;
+	var cal_reso = me.value.linlin(0, 1, 0, 3.8);
+	~mixer.set(\reso, cal_reso)});
+
+~filter_contour = Knob(w, Rect(470, 80, 40, 40))
+.color_([Color.white, Color.red, Color.white])
+.action_({
+	arg me;
+	var cal_contour = me.value.linlin(0, 1, 0, 10000);
+	~mixer.set(\contour, cal_contour);});
+
+~fil_env_atck = Knob(w, Rect(330, 180, 40, 40))
+.color_([Color.white, Color.red, Color.white])
+.action_({
+	arg me;
+	~mixer.set(\fil_env_atck, me.value)});
+
+~fil_env_dcy = Knob(w, Rect(400, 180, 40, 40))
+.color_([Color.white, Color.red, Color.white])
+.action_({
+	arg me;
+	~mixer.set(\fil_env_dcy, me.value * 10)});
+
+~fil_env_sus = Knob(w, Rect(470, 180, 40, 40))
+.color_([Color.white, Color.red, Color.white])
+.action_({
+	arg me;
+	~mixer.set(\fil_env_sus, me.value)});
 
 //Amplifier Controls
 /*Creation of amplifier controls. For each amplifier parameter, creating a knob and inserting it into GUI*/
-~env_attack = Knob(w, Rect(720, 60, 40, 40)).action_({ arg me; ~mixer.set(\amp_env_atck, me.value)})
+~env_attack = Knob(w, Rect(720, 60, 40, 40))
+.action_({ arg me; ~mixer.set(\amp_env_atck, me.value)})
 .color_([Color.white, Color.red, Color.white]);
-~env_decay = Knob(w, Rect(720, 120, 40, 40)).action_({ arg me; ~mixer.set(\amp_env_dcy, me.value)})
+
+~env_decay = Knob(w, Rect(720, 120, 40, 40))
+.action_({ arg me; ~mixer.set(\amp_env_dcy, me.value)})
 .color_([Color.white, Color.red, Color.white]);
-~env_sustain = Knob(w, Rect(720, 180, 40, 40)).action_({ arg me; ~mixer.set(\amp_env_sus, me.value)})
+
+~env_sustain = Knob(w, Rect(720, 180, 40, 40))
+.value_(0.7) // Set to match default
+.action_({ arg me; ~mixer.set(\amp_env_sus, me.value)})
 .color_([Color.white, Color.red, Color.white]);
 
 
@@ -319,7 +355,7 @@ Repeated for oscillator #2 and #3*/
 //Knob di selezione del rate
 //Creation of rate control knob
 ~rate_knob = Knob(w, Rect(1040, 120, 50, 50))
-.action_({arg me; ~rate = me.value})
+.action_({arg me; ~rate = me.value.linlin(0, 1, 0.8, 0.05)}) // Mapping 0..1 to 0.8s..0.05s
 .color_([Color.white, Color.red, Color.white]);
 
 //Start Button
@@ -342,6 +378,7 @@ Repeated for oscillator #2 and #3*/
 
 //Creation of master volume control into GUI
 ~volume_knob = Knob (w, Rect(1230, 150, 50, 50))
+.value_(0.5) // Set to match default vol=0.5
 .action_({arg me; ~mixer.set(\vol, me.value)})
 .color_([Color.white, Color.red, Color.white]);
 
@@ -368,7 +405,7 @@ keyboard = Array.fill(keys_number, { arg i;
 		}{
 			~mixer.set(\amp_gate, 0);
 			~mixer.set(\fil_gate, 0);
-			~arp.reset.stop;
+			//~arp.reset.stop;
 		};
 	});
 } );
@@ -468,7 +505,7 @@ env_sustain_label.stringColor = Color.white;
 env_sustain_label.font = Font("Helvetica", 20);
 
 
-//Arpeggiator controla labels
+//Arpeggiator control labels
 arp_menu_label = StaticText(w, Rect(880, 70, 100, 20));
 arp_menu_label.string = "Arp Type";
 arp_menu_label.stringColor = Color.white;
@@ -487,4 +524,4 @@ arp_start_label.stringColor = Color.white;
 arp_start_label.font = Font("Helvetica", 20);
 arp_start_label.align = \center;
 
-) //end of program
+)
