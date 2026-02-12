@@ -1,16 +1,22 @@
-/*Execution Instructions:
-1, Turn on the Server
-2. Evaluate "SynthDef Declaration"
-3. Evaluate "Program"
-4. In order to shut down the program, please close the window
+// Copyright Giorgio Gamba 2021
 
-NB: The program comes with already set values for Filter and Amplfier. In order to modify them, please rotate knobs.
-In order to generate sound, choose a waveform from one oscillator, turn on oscillator volume and then turn on general volume
-*/
+// How to run
+// 1. Start Server Ctrl + B
+// 2. Evaluate the program: inside parenthesis presso Ctrl + Enter
+// 3. Enjoy
 
+( // Evaluate down here
+
+//Variables Declarations
+
+//Keyboard GUI variables
+var heigth, width, keys_number, base, keyboard;
+
+//Gui Labels variables
+var noise_gen_label, filter_cutoff_label, filter_emphasis_label, filter_contour_label, filter_attack_label, filter_decay_label, filter_sustain_label, env_attack_label, env_decay_label, env_sustain_label, arp_menu_label, arp_rate_label, arp_start_label;
 
 //"SynthDef Declaration"
-(
+
 //Oscillator
 SynthDef(\osc, { arg outBus, freq = 440, saw_on = 0, pulse_on = 0, pulse2_on = 0, pulse3_on = 0, tri_on = 0, gain = 0;
 	//Oscillators with different waveforms declaration:
@@ -49,16 +55,6 @@ SynthDef(\a, {
 	//Sending resulting signal to the speakers
 	Out.ar([0, 1], filter!2); // !2 duplicates mono to stereo
 }).add;
-)
-
-//Program
-(
-//Variables Declarations
-//Keyboard GUI variables
-var heigth, width, keys_number, base, keyboard;
-
-//Gui Labels variables
-var noise_gen_label, filter_cutoff_label, filter_emphasis_label, filter_contour_label, filter_attack_label, filter_decay_label, filter_sustain_label, env_attack_label, env_decay_label, env_sustain_label, arp_menu_label, arp_rate_label, arp_start_label;
 
 /*Creating bus and synths and connecting synths togethere*/
 ~bus = Bus.audio(s, 4);
@@ -98,6 +94,7 @@ var noise_gen_label, filter_cutoff_label, filter_emphasis_label, filter_contour_
 	});
 });
 
+// GUI Implementation
 
 /*Creating window*/
 w = Window("Minimoog Emulator", Rect(50, 50, 1380, 360)).front;
@@ -508,7 +505,7 @@ env_sustain_label.stringColor = Color.white;
 env_sustain_label.font = Font("Helvetica", 20);
 
 
-//Arpeggiator controla labels
+//Arpeggiator control labels
 arp_menu_label = StaticText(w, Rect(880, 70, 100, 20));
 arp_menu_label.string = "Arp Type";
 arp_menu_label.stringColor = Color.white;
@@ -527,4 +524,4 @@ arp_start_label.stringColor = Color.white;
 arp_start_label.font = Font("Helvetica", 20);
 arp_start_label.align = \center;
 
-) //end of program
+)
