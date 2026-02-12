@@ -271,26 +271,59 @@ Repeated for oscillator #2 and #3*/
 
 //Filter Controls
 /*Creation of filter controls. For each filter parameter, creating a knob and inserting it into GUI*/
-~filter_cutoff = Knob(w, Rect(330, 80, 40, 40)).action_({ arg me; ~mixer.set(\cutoff, me.value*3500)})
-.color_([Color.white, Color.red, Color.white]);
-~filter_emphasis = Knob(w, Rect(400, 80, 40, 40)).action_({ arg me; ~mixer.set(\reso, me.value*4*0.83)})
-.color_([Color.white, Color.red, Color.white]);
-~filter_contour = Knob(w, Rect(470, 80, 40, 40)).action_({arg me; ~mixer.set(\contour, me.value * 3500);})
-.color_([Color.white, Color.red, Color.white]);
-~fil_env_atck = Knob(w, Rect(330, 180, 40, 40)).action_({arg me; ~mixer.set(\fil_env_atck, me.value)})
-.color_([Color.white, Color.red, Color.white]);
-~fil_env_dcy = Knob(w, Rect(400, 180, 40, 40)).action_({arg me; ~mixer.set(\fil_env_dcy, me.value * 10)})
-.color_([Color.white, Color.red, Color.white]);
-~fil_env_sus = Knob(w, Rect(470, 180, 40, 40)).action_({arg me; ~mixer.set(\fil_env_sus, me.value)})
-.color_([Color.white, Color.red, Color.white]);
+~filter_cutoff = Knob(w, Rect(330, 80, 40, 40))
+.value_(500.explin(40, 18000, 0, 1)) // Set initial value to match default cutoff=500
+.color_([Color.white, Color.red, Color.white])
+.action_({
+	arg me;
+	var cal_cutoff = me.value.linexp(0, 1, 40, 18000);
+	~mixer.set(\cutoff, cal_cutoff)});
+
+~filter_emphasis = Knob(w, Rect(400, 80, 40, 40))
+.color_([Color.white, Color.red, Color.white])
+.action_({
+	arg me;
+	var cal_reso = me.value.linlin(0, 1, 0, 3.8);
+	~mixer.set(\reso, cal_reso)});
+
+~filter_contour = Knob(w, Rect(470, 80, 40, 40))
+.color_([Color.white, Color.red, Color.white])
+.action_({
+	arg me;
+	var cal_contour = me.value.linlin(0, 1, 0, 10000);
+	~mixer.set(\contour, cal_contour);});
+
+~fil_env_atck = Knob(w, Rect(330, 180, 40, 40))
+.color_([Color.white, Color.red, Color.white])
+.action_({
+	arg me;
+	~mixer.set(\fil_env_atck, me.value)});
+
+~fil_env_dcy = Knob(w, Rect(400, 180, 40, 40))
+.color_([Color.white, Color.red, Color.white])
+.action_({
+	arg me;
+	~mixer.set(\fil_env_dcy, me.value * 10)});
+
+~fil_env_sus = Knob(w, Rect(470, 180, 40, 40))
+.color_([Color.white, Color.red, Color.white])
+.action_({
+	arg me;
+	~mixer.set(\fil_env_sus, me.value)});
 
 //Amplifier Controls
 /*Creation of amplifier controls. For each amplifier parameter, creating a knob and inserting it into GUI*/
-~env_attack = Knob(w, Rect(720, 60, 40, 40)).action_({ arg me; ~mixer.set(\amp_env_atck, me.value)})
+~env_attack = Knob(w, Rect(720, 60, 40, 40))
+.action_({ arg me; ~mixer.set(\amp_env_atck, me.value)})
 .color_([Color.white, Color.red, Color.white]);
-~env_decay = Knob(w, Rect(720, 120, 40, 40)).action_({ arg me; ~mixer.set(\amp_env_dcy, me.value)})
+
+~env_decay = Knob(w, Rect(720, 120, 40, 40))
+.action_({ arg me; ~mixer.set(\amp_env_dcy, me.value)})
 .color_([Color.white, Color.red, Color.white]);
-~env_sustain = Knob(w, Rect(720, 180, 40, 40)).action_({ arg me; ~mixer.set(\amp_env_sus, me.value)})
+
+~env_sustain = Knob(w, Rect(720, 180, 40, 40))
+.value_(0.7) // Set to match default
+.action_({ arg me; ~mixer.set(\amp_env_sus, me.value)})
 .color_([Color.white, Color.red, Color.white]);
 
 
