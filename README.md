@@ -8,6 +8,9 @@ A high-fidelity virtual analog synthesizer built entirely in **SuperCollider**. 
 
 ---
 
+![MinimoogDemiGIF](https://github.com/user-attachments/assets/b51e662d-8a5a-42fa-b8c6-0da4662117b0)
+
+
 ## Overview
 This emulator is a complete software instrument featuring a triple-oscillator synthesis engine and a custom GUI. It allows for deep sound design through real-time manipulation of filters, envelopes, and a built-in arpeggiator.
 
