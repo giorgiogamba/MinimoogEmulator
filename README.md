@@ -87,3 +87,4 @@ There are fex topics that could be developed but you can come with whatever you 
 * Improve Ladder filter
 * Improve filter resonance curve
 * Add new arpeggio patterns
+* Add glide
